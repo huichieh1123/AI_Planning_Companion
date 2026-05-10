@@ -22,51 +22,61 @@ class HomeScreen extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: Container(
-                    height: 120,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF1E293B), // Dark slate color from Figma
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
-                        Icon(Icons.add, color: Colors.white, size: 28),
-                        SizedBox(height: 8),
-                        Text('發起新行程', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                      ],
+                  child: GestureDetector(
+                    onTap: () {
+                      _showCreateTripBottomSheet(context);
+                    },
+                    child: Container(
+                      height: 120,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1E293B), // Dark slate color from Figma
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                          Icon(Icons.add, color: Colors.white, size: 28),
+                          SizedBox(height: 8),
+                          Text('發起新行程', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                        ],
+                      ),
                     ),
                   ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
-                  child: Container(
-                    height: 120,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(color: AppColors.border),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Row(
-                          children: const [
-                            Icon(Icons.link, size: 18, color: AppColors.textSecondary),
-                            SizedBox(width: 6),
-                            Text('加入行程', style: TextStyle(fontWeight: FontWeight.bold)),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          children: const [
-                            Text('輸入 6 碼代碼 ', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
-                            Icon(Icons.arrow_forward, size: 14, color: AppColors.primary),
-                          ],
-                        ),
-                      ],
+                  child: GestureDetector(
+                    onTap: () {
+                      _showJoinTripDialog(context);
+                    },
+                    child: Container(
+                      height: 120,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(color: AppColors.border),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Row(
+                            children: const [
+                              Icon(Icons.link, size: 18, color: AppColors.textSecondary),
+                              SizedBox(width: 6),
+                              Text('加入行程', style: TextStyle(fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: const [
+                              Text('輸入 6 碼代碼 ', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+                              Icon(Icons.arrow_forward, size: 14, color: AppColors.primary),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -77,7 +87,7 @@ class HomeScreen extends StatelessWidget {
               children: [
                 const Icon(Icons.map_outlined, size: 20, color: AppColors.primary),
                 const SizedBox(width: 8),
-                Text('我的行程', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                Text('我的行程', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold) ?? const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               ],
             ),
             const SizedBox(height: 16),
@@ -100,7 +110,7 @@ class HomeScreen extends StatelessWidget {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: const [
-            Text('我的行程', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+            Text('我的行程', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
             SizedBox(height: 6),
             Text('專屬朋友圈的出遊規劃工具', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
           ],
@@ -133,64 +143,6 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSearchBar(BuildContext context) {
-    return TextField(
-      decoration: InputDecoration(
-        prefixIcon: const Icon(Icons.search, color: AppColors.textSecondary),
-        hintText: '搜尋行程、目的地或 AI 建議',
-        filled: true,
-        fillColor: AppColors.surface,
-      ),
-    );
-  }
-
-  Widget _buildAiSuggestionCard(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.primary,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withAlpha((0.16 * 255).round()),
-            blurRadius: 18,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('AI 智能行程建議', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-          const SizedBox(height: 12),
-          const Text(
-            '讓 AI 幫你生成適合團體的路線、景點與餐飲安排。',
-            style: TextStyle(color: Colors.white70),
-          ),
-          const SizedBox(height: 20),
-          Row(
-            children: [
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: AppColors.primary,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                ),
-                onPressed: () {},
-                child: const Text('開始規劃'),
-              ),
-              const SizedBox(width: 12),
-              TextButton(
-                onPressed: () {},
-                child: const Text('查看範例', style: TextStyle(color: Colors.white70)),
-              ),
-            ],
-          )
-        ],
-      ),
-    );
-  }
-
   Widget _buildTripCard(BuildContext context, {required TripInfo trip}) {
     return GestureDetector(
       onTap: () => context.push('/trip/${trip.id}'),
@@ -201,40 +153,52 @@ class HomeScreen extends StatelessWidget {
           border: Border.all(color: AppColors.border),
         ),
         padding: const EdgeInsets.all(18),
-        child: Column(
+        child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(trip.title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                ),
-                _buildStatusChip(trip.status, trip.statusColor),
-              ],
+            Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                color: AppColors.background,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: const Icon(Icons.image_outlined, color: AppColors.textSecondary),
             ),
-            const SizedBox(height: 12),
-            Text(trip.description, style: Theme.of(context).textTheme.bodyMedium),
-            const SizedBox(height: 14),
-            Row(
-              children: [
-                const Icon(Icons.calendar_month, size: 18, color: AppColors.textSecondary),
-                const SizedBox(width: 6),
-                Text(trip.dateRange, style: const TextStyle(color: AppColors.textSecondary)),
-                const SizedBox(width: 14),
-                const Icon(Icons.people, size: 18, color: AppColors.textSecondary),
-                const SizedBox(width: 6),
-                Text(trip.participants, style: const TextStyle(color: AppColors.textSecondary)),
-              ],
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(trip.status, style: TextStyle(fontSize: 12, color: trip.statusColor, fontWeight: FontWeight.bold)),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(trip.title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Text(trip.dateRange, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+                      const SizedBox(width: 12),
+                      Row(
+                        children: [
+                          const Icon(Icons.person_outline, size: 14, color: AppColors.textSecondary),
+                          const SizedBox(width: 4),
+                          Text(trip.participants, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 14),
-            Wrap(
-              spacing: 10,
-              children: trip.highlights
-                  .map((label) => Chip(
-                        label: Text(label, style: const TextStyle(fontSize: 12)),
-                        backgroundColor: AppColors.background,
-                      ))
-                  .toList(),
+            const Padding(
+              padding: EdgeInsets.only(top: 16),
+              child: Icon(Icons.arrow_forward, size: 16, color: AppColors.textSecondary),
             ),
           ],
         ),
@@ -242,14 +206,143 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStatusChip(String label, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: color.withAlpha((0.15 * 255).round()),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Text(label, style: TextStyle(fontSize: 12, color: color, fontWeight: FontWeight.w600)),
+  void _showCreateTripBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          decoration: const BoxDecoration(
+            color: AppColors.background,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('發起新行程', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                const Text('行程名稱', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                const SizedBox(height: 8),
+                TextField(
+                  decoration: InputDecoration(
+                    hintText: '例如：週末宜蘭放鬆行',
+                    filled: true,
+                    fillColor: AppColors.surface,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text('目的地', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                const SizedBox(height: 8),
+                TextField(
+                  decoration: InputDecoration(
+                    hintText: '例如：宜蘭、台北、日本',
+                    filled: true,
+                    fillColor: AppColors.surface,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      // Navigate to new trip or show success
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: const Text('開始規劃', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showJoinTripDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: AppColors.background,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          title: const Text('加入行程', style: TextStyle(fontWeight: FontWeight.bold)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('請輸入隊長提供的 6 碼行程代碼', style: TextStyle(color: AppColors.textSecondary)),
+              const SizedBox(height: 16),
+              TextField(
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 24, letterSpacing: 8, fontWeight: FontWeight.bold),
+                maxLength: 6,
+                textCapitalization: TextCapitalization.characters,
+                decoration: InputDecoration(
+                  counterText: '',
+                  filled: true,
+                  fillColor: AppColors.surface,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  hintText: 'XXXXXX',
+                  hintStyle: const TextStyle(color: AppColors.border, letterSpacing: 8),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('取消', style: TextStyle(color: AppColors.textSecondary)),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('成功加入行程！'), backgroundColor: AppColors.primary),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              child: const Text('加入'),
+            ),
+          ],
+        );
+      },
     );
   }
 }
