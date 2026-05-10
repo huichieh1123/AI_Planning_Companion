@@ -155,6 +155,45 @@ class _DiscussionScreenState extends State<DiscussionScreen> {
                   ),
                 ),
               ),
+              const SizedBox(width: 10),
+              Container(
+                decoration: BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
+                child: const IconButton(
+                  onPressed: null,
+                  icon: Icon(Icons.send, color: Colors.white),
+                ),
+              )
+            ],
+          ),
+        )
+      ],
+    );
+  }
+
+  Widget _buildChatBubble(ChatMessage message) {
+    return Align(
+      alignment: message.isMe ? Alignment.centerRight : Alignment.centerLeft,
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        constraints: const BoxConstraints(maxWidth: 260),
+        decoration: BoxDecoration(
+          color: message.isMe ? AppColors.primary : AppColors.surface,
+          borderRadius: BorderRadius.only(
+            topLeft: const Radius.circular(20),
+            topRight: const Radius.circular(20),
+            bottomLeft: Radius.circular(message.isMe ? 20 : 4),
+            bottomRight: Radius.circular(message.isMe ? 4 : 20),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(message.author, style: TextStyle(fontWeight: FontWeight.bold, color: message.isMe ? Colors.white : AppColors.textPrimary)),
+            const SizedBox(height: 6),
+            Text(
+              message.message,
+              style: TextStyle(color: message.isMe ? Colors.white : AppColors.textSecondary),
             ),
           ],
         ),

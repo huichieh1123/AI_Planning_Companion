@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'core/router/app_router.dart';
+import 'core/theme/app_theme.dart';
 
 void main() {
   runApp(const MyApp());
@@ -11,12 +12,9 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
+      debugShowCheckedModeBanner: false,
       title: 'Trip App',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF4A65FF)), // 類似你設計圖的藍色
-        useMaterial3: true,
-        scaffoldBackgroundColor: const Color(0xFFF5F6F8), // 淺灰背景
-      ),
+      theme: AppTheme.lightTheme,
       routerConfig: appRouter,
     );
   }
