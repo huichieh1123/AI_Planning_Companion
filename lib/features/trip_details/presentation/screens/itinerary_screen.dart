@@ -5,8 +5,8 @@ import '../providers/itinerary_provider.dart';
 import '../../domain/models/itinerary_item_model.dart';
 
 class ItineraryScreen extends StatelessWidget {
-  final TripInfo trip;
-  const ItineraryScreen({super.key, required this.trip});
+  final String tripId;
+  const ItineraryScreen({super.key, required this.tripId});
 
   @override
   Widget build(BuildContext context) {
