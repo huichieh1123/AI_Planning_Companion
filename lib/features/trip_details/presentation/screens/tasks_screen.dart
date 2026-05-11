@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:ai_planning_companion/core/theme/app_colors.dart';
 import '../providers/tasks_provider.dart';
 import '../../domain/models/task_model.dart';
+import 'dart:math' as math;
 
 class TasksScreen extends StatefulWidget {
   final String tripId;
@@ -33,7 +34,7 @@ class _TasksScreenState extends State<TasksScreen> {
               ],
             ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () => _showAddTaskDialog(context, provider),
         backgroundColor: AppColors.primary,
         child: const Icon(Icons.add, color: Colors.white),
       ),
@@ -55,52 +56,55 @@ class _TasksScreenState extends State<TasksScreen> {
             ],
           ),
           const SizedBox(height: 12),
-          Row(
-            children: [
-              ...provider.teamMembers.map((member) => Padding(
-                    padding: const EdgeInsets.only(right: 20),
-                    child: DragTarget<TaskModel>(
-                      onAcceptWithDetails: (details) {
-                        provider.assignTask(details.data, member.name);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('已將「\${details.data.title}」分配給 \${member.name}'),
-                            duration: const Duration(seconds: 2),
-                            backgroundColor: AppColors.success,
-                          ),
-                        );
-                      },
-                      builder: (context, candidateData, rejectedData) {
-                        final isDraggingOver = candidateData.isNotEmpty;
-                        return Column(
-                          children: [
-                            AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
-                              transform: isDraggingOver ? Matrix4.diagonal3Values(1.1, 1.1, 1) : Matrix4.identity(),
-                              child: CircleAvatar(
-                                radius: 24,
-                                backgroundColor: member.color.withValues(alpha: isDraggingOver ? 0.5 : 0.2),
-                                child: Text(member.name[0], style: TextStyle(color: member.color, fontWeight: FontWeight.bold)),
-                              ),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                ...provider.teamMembers.map((member) => Padding(
+                      padding: const EdgeInsets.only(right: 20),
+                      child: DragTarget<TaskModel>(
+                        onAcceptWithDetails: (details) {
+                          provider.assignTask(details.data, member.name);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('已將「\${details.data.title}」分配給 \${member.name}'),
+                              duration: const Duration(seconds: 2),
+                              backgroundColor: AppColors.success,
                             ),
-                            const SizedBox(height: 4),
-                            Text(member.name, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                            Text(member.role, style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
-                          ],
-                        );
-                      },
-                    ),
-                  )),
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.border, style: BorderStyle.solid),
+                          );
+                        },
+                        builder: (context, candidateData, rejectedData) {
+                          final isDraggingOver = candidateData.isNotEmpty;
+                          return Column(
+                            children: [
+                              AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
+                                transform: isDraggingOver ? Matrix4.diagonal3Values(1.1, 1.1, 1) : Matrix4.identity(),
+                                child: CircleAvatar(
+                                  radius: 24,
+                                  backgroundColor: member.color.withValues(alpha: isDraggingOver ? 0.5 : 0.2),
+                                  child: Text(member.name[0], style: TextStyle(color: member.color, fontWeight: FontWeight.bold)),
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(member.name, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                              Text(member.role, style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+                            ],
+                          );
+                        },
+                      ),
+                    )),
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppColors.border, style: BorderStyle.solid),
+                  ),
+                  child: const Icon(Icons.add, color: AppColors.textSecondary),
                 ),
-                child: const Icon(Icons.add, color: AppColors.textSecondary),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
@@ -157,21 +161,16 @@ class _TasksScreenState extends State<TasksScreen> {
     );
   }
 
-  Widget _buildDeleteBackground() {
+  Widget _buildActionBackground(Color color, IconData icon, Alignment alignment) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: AppColors.error,
+        color: color,
         borderRadius: BorderRadius.circular(16),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: const [
-          Icon(Icons.delete_outline, color: Colors.white),
-          Icon(Icons.delete_outline, color: Colors.white),
-        ],
-      ),
+      alignment: alignment,
+      child: Icon(icon, color: Colors.white),
     );
   }
 
@@ -202,12 +201,29 @@ class _TasksScreenState extends State<TasksScreen> {
         final task = tasks[index - 2];
         return Dismissible(
           key: Key(task.id),
-          background: _buildDeleteBackground(),
-          onDismissed: (_) {
-            provider.deleteTask(task, isAssigned: false);
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('已刪除任務：\${task.title}'), duration: const Duration(seconds: 2)),
-            );
+          direction: DismissDirection.horizontal,
+          background: _buildActionBackground(AppColors.primary, Icons.add_task, Alignment.centerLeft), // Right swipe
+          secondaryBackground: _buildActionBackground(AppColors.error, Icons.delete_outline, Alignment.centerRight), // Left swipe
+          confirmDismiss: (direction) async {
+            if (direction == DismissDirection.endToStart) {
+              return true; // allow delete
+            } else if (direction == DismissDirection.startToEnd) {
+              // Right swipe -> Doesn't delete (右滑不刪). Maybe assign to self or just bounce back.
+              // We'll bounce back.
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('這是一項未分配任務，您可以拖曳至成員大頭貼進行分配！'), duration: Duration(seconds: 2)),
+              );
+              return false;
+            }
+            return false;
+          },
+          onDismissed: (direction) {
+            if (direction == DismissDirection.endToStart) {
+              provider.deleteTask(task, isAssigned: false);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('已刪除任務：\${task.title}'), duration: const Duration(seconds: 2)),
+              );
+            }
           },
           child: LongPressDraggable<TaskModel>(
             data: task,
@@ -217,15 +233,15 @@ class _TasksScreenState extends State<TasksScreen> {
                 opacity: 0.9,
                 child: SizedBox(
                   width: MediaQuery.of(context).size.width - 32,
-                  child: _buildUnassignedCard(task.title, task.subtitle),
+                  child: _buildUnassignedCard(context, provider, task),
                 ),
               ),
             ),
             childWhenDragging: Opacity(
               opacity: 0.3,
-              child: _buildUnassignedCard(task.title, task.subtitle),
+              child: _buildUnassignedCard(context, provider, task),
             ),
-            child: _buildUnassignedCard(task.title, task.subtitle),
+            child: _buildUnassignedCard(context, provider, task),
           ),
         );
       },
@@ -244,14 +260,14 @@ class _TasksScreenState extends State<TasksScreen> {
           return Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('今日待辦任務 11/24 (週五)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              const Text('今日待辦任務', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: AppColors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Text('$completedCount/${tasks.length} 完成', style: const TextStyle(color: AppColors.primary, fontSize: 12, fontWeight: FontWeight.bold)),
+                child: Text('\$completedCount/\${tasks.length} 完成', style: const TextStyle(color: AppColors.primary, fontSize: 12, fontWeight: FontWeight.bold)),
               ),
             ],
           );
@@ -261,12 +277,26 @@ class _TasksScreenState extends State<TasksScreen> {
         final task = tasks[index - 2];
         return Dismissible(
           key: Key(task.id),
-          background: _buildDeleteBackground(),
-          onDismissed: (_) {
-            provider.deleteTask(task, isAssigned: true);
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('已刪除任務：\${task.title}'), duration: const Duration(seconds: 2)),
-            );
+          direction: DismissDirection.horizontal,
+          background: _buildActionBackground(AppColors.success, Icons.check, Alignment.centerLeft), // Right swipe
+          secondaryBackground: _buildActionBackground(AppColors.error, Icons.delete_outline, Alignment.centerRight), // Left swipe
+          confirmDismiss: (direction) async {
+            if (direction == DismissDirection.endToStart) {
+              return true; // allow delete
+            } else if (direction == DismissDirection.startToEnd) {
+              // Right swipe -> Complete task, return false to not delete (右滑不刪)
+              provider.toggleTaskStatus(task);
+              return false;
+            }
+            return false;
+          },
+          onDismissed: (direction) {
+            if (direction == DismissDirection.endToStart) {
+              provider.deleteTask(task, isAssigned: true);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('已刪除任務：\${task.title}'), duration: const Duration(seconds: 2)),
+              );
+            }
           },
           child: _buildTaskCard(provider, task),
         );
@@ -274,7 +304,7 @@ class _TasksScreenState extends State<TasksScreen> {
     );
   }
 
-  Widget _buildUnassignedCard(String title, String? subtitle) {
+  Widget _buildUnassignedCard(BuildContext context, TasksProvider provider, TaskModel task) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -291,22 +321,36 @@ class _TasksScreenState extends State<TasksScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-                if (subtitle != null) ...[
+                Text(task.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+                if (task.subtitle != null && task.subtitle!.isNotEmpty) ...[
                   const SizedBox(height: 4),
-                  Text(subtitle, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                  Text(task.subtitle!, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
                 ],
               ],
             ),
           ),
-          Container(
-            width: 32,
-            height: 32,
-            decoration: const BoxDecoration(
-              color: AppColors.primary,
-              shape: BoxShape.circle,
+          GestureDetector(
+            onTap: () {
+              // Quick action button to assign to self or first member
+              if (provider.teamMembers.isNotEmpty) {
+                 provider.assignTask(task, provider.teamMembers.first.name);
+                 ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('快速分配給 ${provider.teamMembers.first.name}'),
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+              }
+            },
+            child: Container(
+              width: 32,
+              height: 32,
+              decoration: const BoxDecoration(
+                color: AppColors.primary,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.person_add_alt_1, color: Colors.white, size: 16), // Changed icon to distinguish from FAB add
             ),
-            child: const Icon(Icons.add, color: Colors.white, size: 16),
           ),
         ],
       ),
@@ -338,12 +382,15 @@ class _TasksScreenState extends State<TasksScreen> {
                 children: [
                   Row(
                     children: [
-                      Text(
-                        task.title,
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          decoration: task.isCompleted ? TextDecoration.lineThrough : null,
-                          color: task.isCompleted ? AppColors.textSecondary : AppColors.textPrimary,
+                      Expanded(
+                        child: Text(
+                          task.title,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            decoration: task.isCompleted ? TextDecoration.lineThrough : null,
+                            color: task.isCompleted ? AppColors.textSecondary : AppColors.textPrimary,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -368,6 +415,78 @@ class _TasksScreenState extends State<TasksScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  void _showAddTaskDialog(BuildContext context, TasksProvider provider) {
+    final titleController = TextEditingController();
+    final subtitleController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: AppColors.surface,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          title: const Text('新增任務', style: TextStyle(fontWeight: FontWeight.bold)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: titleController,
+                decoration: InputDecoration(
+                  hintText: '任務名稱',
+                  filled: true,
+                  fillColor: AppColors.background,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: subtitleController,
+                decoration: InputDecoration(
+                  hintText: '任務備註 (選填)',
+                  filled: true,
+                  fillColor: AppColors.background,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('取消', style: TextStyle(color: AppColors.textSecondary)),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final title = titleController.text.trim();
+                if (title.isNotEmpty) {
+                  final newTask = TaskModel(
+                    id: DateTime.now().millisecondsSinceEpoch.toString(),
+                    title: title,
+                    subtitle: subtitleController.text.trim(),
+                  );
+                  provider.addTask(newTask);
+                  Navigator.pop(context);
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              child: const Text('新增'),
+            ),
+          ],
+        );
+      },
     );
   }
 }

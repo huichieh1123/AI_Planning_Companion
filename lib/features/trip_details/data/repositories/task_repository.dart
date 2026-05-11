@@ -45,4 +45,10 @@ class TaskRepository {
     // Simulate API call to delete
     await Future.delayed(const Duration(milliseconds: 200));
   }
+
+  Future<TaskModel> addTask(TaskModel task) async {
+    // Simulate API call to add task
+    await Future.delayed(const Duration(milliseconds: 200));
+    return task;
+  }
 }
