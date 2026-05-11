@@ -83,6 +83,19 @@ class TasksProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> addTask(TaskModel task) async {
+    // Optimistic UI update
+    unassignedTasks.insert(0, task);
+    notifyListeners();
+
+    try {
+      await _repository.addTask(task);
+    } catch (e) {
+      unassignedTasks.removeWhere((t) => t.id == task.id);
+      notifyListeners();
+    }
+  }
+
   Future<void> autoAssignWithAi() async {
     if (unassignedTasks.isEmpty) return;
 
